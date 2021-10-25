@@ -340,4 +340,4 @@ ASALocalRun/
 healthchecksdb
 
 # Force include SOIL
-!Third Party/SOIL
+!/Third Party/SOIL/*
