@@ -2,6 +2,7 @@
 
 Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 	triangle = Mesh::GenerateTriangle();
+	cam = new Camera();
 
 	matrixShader = new Shader("matrixVertex.glsl", "ColourFragment.glsl");
 
@@ -15,6 +16,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 }
 Renderer::~Renderer(void) {
 	delete triangle;
+	delete cam;
 	delete matrixShader;
 }
 
@@ -47,4 +49,9 @@ void Renderer::SwitchToPerspective()
 void Renderer::SwitchToOrthographic()
 {
 	projMatrix = Matrix4::Orthographic(-1.0f, 10000.0f, width / 2.0f, -width / 2.0f, height / 2.0f, -height / 2.0f);
+}
+
+void Renderer::UpdateScene(float dt) {
+	cam->UpdateCamera(dt);
+	viewMatrix = cam->BuildViewMatrix();
 }
