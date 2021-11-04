@@ -27,7 +27,7 @@ void SceneNode::Update(float dt)
 		worldTransform = parent->worldTransform * transform;
 	}
 	else {
-		worldTransform = transform
+		worldTransform = transform;
 	}
 	for (vector<SceneNode*>::iterator i = children.begin(); i != children.end(); ++i) {
 		(*i)->Update(dt);
