@@ -23,6 +23,15 @@ public:
 	Mesh* GetMesh() const { return mesh; }
 	void SetMesh(Mesh* m) { mesh = m; }
 
+	float GetBoundingRadius() const { return boundingRadius; }
+	void SetBoundingRadius(float f) { boundingRadius = f; }
+
+	float GetCameraDistance() const { return distanceFromCamera; }
+	void SetCameraDistance(float f) { distanceFromCamera = f; }
+
+	GLuint GetTexture() const { return texture; }
+	void SetTexture(GLuint tex) { texture = tex; }
+
 	void AddChild(SceneNode* s);
 
 	virtual void Update(float dt);
@@ -30,6 +39,10 @@ public:
 
 	std::vector<SceneNode*>::const_iterator GetChildIteratorStart() { return children.begin(); }
 	std::vector<SceneNode*>::const_iterator GetChildIteratorEnd() { return children.end(); }
+
+	static bool CompareByCameraDistance(SceneNode* a, SceneNode* b) {
+		return (a->distanceFromCamera < b->distanceFromCamera) ? true : false;
+	}
 protected:
 	SceneNode* parent;
 	Mesh* mesh;
@@ -37,5 +50,8 @@ protected:
 	Matrix4 transform;
 	Vector3 modelScale;
 	Vector4 colour;
+	float distanceFromCamera;
+	float boundingRadius;
+	GLuint texture;
 	std::vector<SceneNode*> children;
 };
