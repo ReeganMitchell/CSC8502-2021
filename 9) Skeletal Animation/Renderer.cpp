@@ -46,7 +46,7 @@ void  Renderer::UpdateScene(float dt) {
 	camera->UpdateCamera(dt);
 	viewMatrix = camera->BuildViewMatrix();
 
-	FrameTime -= dt;
+	FrameTime -= dt * 1.0f;
 	while (FrameTime < 0.0f) {
 		currentFrame = (currentFrame + 1) % anim->GetFrameCount();
 		FrameTime += 1.0f / anim->GetFrameRate();
