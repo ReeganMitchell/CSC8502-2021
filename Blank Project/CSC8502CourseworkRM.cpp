@@ -2,7 +2,7 @@
 #include "Renderer.h"
 
 int main()	{
-	Window w("Make your own project!", 1280, 720, false);
+	Window w("CSC8502CourseworkRM", 1280, 720, false);
 
 	if(!w.HasInitialised()) {
 		return -1;
