@@ -43,6 +43,7 @@ protected:
 	HeightMap* heightMap;
 	GLuint* islandTextures;
 	GLuint* islandBumpmaps;
+	GLuint islandMask;
 
 	Shader* skyboxShader;
 	Shader* reflectShader;

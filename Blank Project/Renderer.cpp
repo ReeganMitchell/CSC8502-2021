@@ -4,27 +4,39 @@
 
 Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	root = new SceneNode();
-	camera = new Camera(0.0f, 180.0f, (Vector3(0, 100, 750.0f)));
+	camera = new Camera(00.0f, 0.0f, (Vector3(0, 100, 750.0f)));
 	quad = Mesh::GenerateQuad();
 
 	heightMap = new HeightMap(TEXTUREDIR"islandHeightmap.png");
-	islandTextures = new GLuint[1];
-	islandTextures[0] = SOIL_load_OGL_texture(TEXTUREDIR"Barren Reds.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	islandTextures = new GLuint[4];
+	islandTextures[0] = SOIL_load_OGL_texture(TEXTUREDIR"islandSand.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	islandTextures[1] = SOIL_load_OGL_texture(TEXTUREDIR"islandMud.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	islandTextures[2] = SOIL_load_OGL_texture(TEXTUREDIR"islandGrass.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	islandTextures[3] = SOIL_load_OGL_texture(TEXTUREDIR"islandRock.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 
-	islandBumpmaps = new GLuint[1];
+	islandBumpmaps = new GLuint[4];
 	islandBumpmaps[0] = SOIL_load_OGL_texture(TEXTUREDIR"Barren RedsDOT3.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-	SetTextureRepeating(islandTextures[0], true);
-	SetTextureRepeating(islandBumpmaps[0], true);
+	islandBumpmaps[1] = SOIL_load_OGL_texture(TEXTUREDIR"Barren RedsDOT3.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	islandBumpmaps[2] = SOIL_load_OGL_texture(TEXTUREDIR"Barren RedsDOT3.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	islandBumpmaps[3] = SOIL_load_OGL_texture(TEXTUREDIR"Barren RedsDOT3.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+
+	islandMask = SOIL_load_OGL_texture(TEXTUREDIR"islandMask.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	SetTextureRepeating(islandMask, true);
+	for (int i = 0; i < 4; i++) {
+		SetTextureRepeating(islandTextures[i], true);
+		SetTextureRepeating(islandBumpmaps[i], true);
+	}
+
 	waterTex = SOIL_load_OGL_texture(TEXTUREDIR"water.TGA", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	SetTextureRepeating(waterTex, true);
 	cubeMap = SOIL_load_OGL_cubemap(TEXTUREDIR"rusted_west.jpg", TEXTUREDIR"rusted_east.jpg", TEXTUREDIR"rusted_up.jpg", TEXTUREDIR"rusted_down.jpg",
 		TEXTUREDIR"rusted_south.jpg", TEXTUREDIR"rusted_north.jpg", SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, 0);
 
 	Vector3 dimensions = heightMap->GetHeightMapSize();
-	camera->SetPosition(dimensions * Vector3(0.4, 1.0, 0.4));
-	light = new Light(dimensions * Vector3(0.4f, 1.3f, 0.4f), Vector4(1, 1, 1, 1), dimensions.x * 0.5f);
+	camera->SetPosition(dimensions * Vector3(0.5, 2.0, 0.5));
+	light = new Light(dimensions * Vector3(0.5f, 1.3f, 0.5f), Vector4(1, 1, 1, 1), dimensions.x * 0.5f);
 
-	shader = new Shader("BumpVertex.glsl", "BumpFragment.glsl");
+	shader = new Shader("IslandVertex.glsl", "IslandFragment.glsl");
 	reflectShader = new Shader("ReflectVertex.glsl", "ReflectFragment.glsl");
 	skyboxShader = new Shader("SkyboxVertex.glsl", "SkyboxFragment.glsl");
 
@@ -46,7 +58,8 @@ Renderer::~Renderer(void)	{
 	delete heightMap;
 	//delete island;
 	delete reflectShader;
-	glDeleteTextures(1, islandTextures);
+	glDeleteTextures(4, islandTextures);
+	glDeleteTextures(4, islandBumpmaps);
 	glDeleteTextures(1, &waterTex);
 }
 
@@ -82,7 +95,7 @@ void Renderer::DrawScene()
 {
 	DrawSkybox();
 	DrawHeightMap();
-	DrawWater();
+	//DrawWater();
 	BuildNodeLists(root);
 	DrawNodes();
 	ClearNodeLists();
@@ -192,18 +205,50 @@ void Renderer::DrawHeightMap()
 	SetShaderLight(*light);
 	glUniform3fv(glGetUniformLocation(shader->GetProgram(), "cameraPos"), 1, (float*)& camera->GetPosition());
 
-	glUniform1i(glGetUniformLocation(shader->GetProgram(), "diffuseTex"), 0);
+	//Bind Textures
+
+	glUniform1i(glGetUniformLocation(shader->GetProgram(), "diffuseTex1"), 0);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, islandTextures[0]);
 
-	glUniform1i(glGetUniformLocation(shader->GetProgram(), "bumpTex"), 1);
+	glUniform1i(glGetUniformLocation(shader->GetProgram(), "diffuseTex2"), 1);
 	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, islandTextures[1]);
+
+	glUniform1i(glGetUniformLocation(shader->GetProgram(), "diffuseTex3"), 2);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, islandTextures[2]);
+
+	glUniform1i(glGetUniformLocation(shader->GetProgram(), "diffuseTex4"), 3);
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, islandTextures[3]);
+
+	//Bind Bumps
+	glUniform1i(glGetUniformLocation(shader->GetProgram(), "bumpTex1"), 4);
+	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_2D, islandBumpmaps[0]);
+
+	glUniform1i(glGetUniformLocation(shader->GetProgram(), "bumpTex2"), 5);
+	glActiveTexture(GL_TEXTURE5);
+	glBindTexture(GL_TEXTURE_2D, islandBumpmaps[1]);
+
+	glUniform1i(glGetUniformLocation(shader->GetProgram(), "bumpTex3"), 6);
+	glActiveTexture(GL_TEXTURE6);
+	glBindTexture(GL_TEXTURE_2D, islandBumpmaps[2]);
+
+	glUniform1i(glGetUniformLocation(shader->GetProgram(), "bumpTex4"), 7);
+	glActiveTexture(GL_TEXTURE7);
+	glBindTexture(GL_TEXTURE_2D, islandBumpmaps[3]);
+
+	//Bind mask
+
+	glUniform1i(glGetUniformLocation(shader->GetProgram(), "mask"), 8);
+	glActiveTexture(GL_TEXTURE8);
+	glBindTexture(GL_TEXTURE_2D, islandMask);
 
 	modelMatrix.ToIdentity();
 	textureMatrix.ToIdentity();
 
 	UpdateShaderMatrices();
-	SetShaderLight(*light);
 	heightMap->Draw();
 }
