@@ -46,10 +46,10 @@ void main(void) {
 	texel3 *= maskTexel.b;
 	texel3.a = 1.0;
 	vec4 texel4 = texture(diffuseTex4,IN.texCoord);
-	texel4 *= maskTexel.a;
+	texel4 *= 1 - maskTexel.a;
 	texel4.a = 1.0;
 
-	vec4 diffuse = (texel1 + texel2 + texel3);//+ texel4
+	vec4 diffuse = texel1 + texel2 + texel3 + texel4;
 
 	vec3 bumpNormal1 = texture(bumpTex1,IN.texCoord).rgb;
 	bumpNormal1 *= maskTexel.r;
@@ -58,9 +58,9 @@ void main(void) {
 	vec3 bumpNormal3 = texture(bumpTex3,IN.texCoord).rgb;
 	bumpNormal3 *= maskTexel.b;
 	vec3 bumpNormal4 = texture(bumpTex4,IN.texCoord).rgb;
-	bumpNormal4 *= maskTexel.a;
+	bumpNormal4 *= 1 - maskTexel.a;
 
-	vec3 bumpNormal = bumpNormal1 + bumpNormal2 + bumpNormal3;// + bumpNormal4;
+	vec3 bumpNormal = bumpNormal1 + bumpNormal2 + bumpNormal3 + bumpNormal4;
 	bumpNormal = normalize(TBN * normalize(bumpNormal * 2.0 - 1.0));
 
 	float lambert = max(dot(incident, bumpNormal), 0.0f);

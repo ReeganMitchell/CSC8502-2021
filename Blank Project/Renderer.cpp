@@ -15,10 +15,10 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	islandTextures[3] = SOIL_load_OGL_texture(TEXTUREDIR"islandRock.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 
 	islandBumpmaps = new GLuint[4];
-	islandBumpmaps[0] = SOIL_load_OGL_texture(TEXTUREDIR"Barren RedsDOT3.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-	islandBumpmaps[1] = SOIL_load_OGL_texture(TEXTUREDIR"Barren RedsDOT3.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-	islandBumpmaps[2] = SOIL_load_OGL_texture(TEXTUREDIR"Barren RedsDOT3.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-	islandBumpmaps[3] = SOIL_load_OGL_texture(TEXTUREDIR"Barren RedsDOT3.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	islandBumpmaps[0] = SOIL_load_OGL_texture(TEXTUREDIR"islandSandNormal.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	islandBumpmaps[1] = SOIL_load_OGL_texture(TEXTUREDIR"islandMudNormal.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	islandBumpmaps[2] = SOIL_load_OGL_texture(TEXTUREDIR"islandGrassNormal.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	islandBumpmaps[3] = SOIL_load_OGL_texture(TEXTUREDIR"islandRockNormal.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 
 	islandMask = SOIL_load_OGL_texture(TEXTUREDIR"islandMask.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	SetTextureRepeating(islandMask, true);
@@ -95,7 +95,7 @@ void Renderer::DrawScene()
 {
 	DrawSkybox();
 	DrawHeightMap();
-	//DrawWater();
+	DrawWater();
 	BuildNodeLists(root);
 	DrawNodes();
 	ClearNodeLists();
