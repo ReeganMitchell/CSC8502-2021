@@ -33,7 +33,9 @@ protected:
 	Light* light;
 	Mesh* quad;
 	Mesh* cube;
-	Shader* shader;
+	Mesh* tree;
+	Mesh* boat;
+	Mesh* soldier;
 	Camera* camera;
 	SceneNode* root;
 	GLuint texture;
@@ -41,6 +43,7 @@ protected:
 	//heightmap
 	SceneNode* island;
 	HeightMap* heightMap;
+	Shader* islandShader;
 	GLuint* islandTextures;
 	GLuint* islandBumpmaps;
 	GLuint islandMask;

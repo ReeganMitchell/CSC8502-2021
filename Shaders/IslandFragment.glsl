@@ -14,8 +14,8 @@ uniform sampler2D mask;
 
 uniform vec3 cameraPos;
 uniform vec4 lightColour;
+uniform vec3 lightDir;
 uniform vec3 lightPos;
-uniform float lightRadius;
 
 in Vertex{
 	vec4 colour;
@@ -29,7 +29,7 @@ in Vertex{
 out vec4 fragColour;
 
 void main(void) {
-	vec3 incident = normalize(lightPos - IN.worldPos);
+	vec3 incident = normalize(lightDir);
 	vec3 viewDir = normalize(cameraPos - IN.worldPos);
 	vec3 halfDir = normalize(incident + viewDir);
 
@@ -64,8 +64,8 @@ void main(void) {
 	bumpNormal = normalize(TBN * normalize(bumpNormal * 2.0 - 1.0));
 
 	float lambert = max(dot(incident, bumpNormal), 0.0f);
-	float distance = length(lightPos - IN.worldPos);
-	float attenuation = 1.0 - clamp(distance / lightRadius, 0.0, 1.0);
+	//float distance = length(lightPos - IN.worldPos);
+	float attenuation = 1.0;// - clamp(distance / lightRadius, 0.0, 1.0);
 
 	float specFactor = clamp(dot(halfDir, bumpNormal), 0.0, 1.0);
 	specFactor = pow(specFactor, 60.0);
@@ -75,4 +75,6 @@ void main(void) {
 	fragColour.rgb += (lightColour.rgb * specFactor)*attenuation * 0.33;
 	fragColour.rgb += surface * 0.1f; //ambient;
 	fragColour.a = diffuse.a;
+
+	//fragColour.rgb = vec3(1.0,1.0,1.0) * surface;
 }

@@ -29,6 +29,9 @@ public:
 	float GetCameraDistance() const { return distanceFromCamera; }
 	void SetCameraDistance(float f) { distanceFromCamera = f; }
 
+	Shader* GetShader() const { return shader; }
+	void SetShader(Shader* s) { shader = s; }
+
 	GLuint GetTexture() const { return texture; }
 	void SetTexture(GLuint tex) { texture = tex; }
 
@@ -52,6 +55,7 @@ protected:
 	Vector4 colour;
 	float distanceFromCamera;
 	float boundingRadius;
+	Shader* shader;
 	GLuint texture;
 	std::vector<SceneNode*> children;
 };

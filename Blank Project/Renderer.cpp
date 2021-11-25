@@ -6,6 +6,7 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	root = new SceneNode();
 	camera = new Camera(00.0f, 0.0f, (Vector3(0, 100, 750.0f)));
 	quad = Mesh::GenerateQuad();
+	tree = Mesh::LoadFromMeshFile("OffsetCube.msh");
 
 	heightMap = new HeightMap(TEXTUREDIR"islandHeightmap.png");
 	islandTextures = new GLuint[4];
@@ -34,9 +35,9 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 
 	Vector3 dimensions = heightMap->GetHeightMapSize();
 	camera->SetPosition(dimensions * Vector3(0.5, 2.0, 0.5));
-	light = new Light(dimensions * Vector3(0.5f, 1.3f, 0.5f), Vector4(1, 1, 1, 1), dimensions.x * 0.5f);
+	light = new Light(Vector3(2.0f,5.0f,2.0f), Vector4(1, 1, 1, 1));
 
-	shader = new Shader("IslandVertex.glsl", "IslandFragment.glsl");
+	islandShader = new Shader("IslandVertex.glsl", "IslandFragment.glsl");
 	reflectShader = new Shader("ReflectVertex.glsl", "ReflectFragment.glsl");
 	skyboxShader = new Shader("SkyboxVertex.glsl", "SkyboxFragment.glsl");
 
@@ -201,48 +202,48 @@ void Renderer::DrawSkybox()
 
 void Renderer::DrawHeightMap()
 {
-	BindShader(shader);
+	BindShader(islandShader);
 	SetShaderLight(*light);
-	glUniform3fv(glGetUniformLocation(shader->GetProgram(), "cameraPos"), 1, (float*)& camera->GetPosition());
+	glUniform3fv(glGetUniformLocation(islandShader->GetProgram(), "cameraPos"), 1, (float*)& camera->GetPosition());
 
 	//Bind Textures
 
-	glUniform1i(glGetUniformLocation(shader->GetProgram(), "diffuseTex1"), 0);
+	glUniform1i(glGetUniformLocation(islandShader->GetProgram(), "diffuseTex1"), 0);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, islandTextures[0]);
 
-	glUniform1i(glGetUniformLocation(shader->GetProgram(), "diffuseTex2"), 1);
+	glUniform1i(glGetUniformLocation(islandShader->GetProgram(), "diffuseTex2"), 1);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, islandTextures[1]);
 
-	glUniform1i(glGetUniformLocation(shader->GetProgram(), "diffuseTex3"), 2);
+	glUniform1i(glGetUniformLocation(islandShader->GetProgram(), "diffuseTex3"), 2);
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, islandTextures[2]);
 
-	glUniform1i(glGetUniformLocation(shader->GetProgram(), "diffuseTex4"), 3);
+	glUniform1i(glGetUniformLocation(islandShader->GetProgram(), "diffuseTex4"), 3);
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, islandTextures[3]);
 
 	//Bind Bumps
-	glUniform1i(glGetUniformLocation(shader->GetProgram(), "bumpTex1"), 4);
+	glUniform1i(glGetUniformLocation(islandShader->GetProgram(), "bumpTex1"), 4);
 	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_2D, islandBumpmaps[0]);
 
-	glUniform1i(glGetUniformLocation(shader->GetProgram(), "bumpTex2"), 5);
+	glUniform1i(glGetUniformLocation(islandShader->GetProgram(), "bumpTex2"), 5);
 	glActiveTexture(GL_TEXTURE5);
 	glBindTexture(GL_TEXTURE_2D, islandBumpmaps[1]);
 
-	glUniform1i(glGetUniformLocation(shader->GetProgram(), "bumpTex3"), 6);
+	glUniform1i(glGetUniformLocation(islandShader->GetProgram(), "bumpTex3"), 6);
 	glActiveTexture(GL_TEXTURE6);
 	glBindTexture(GL_TEXTURE_2D, islandBumpmaps[2]);
 
-	glUniform1i(glGetUniformLocation(shader->GetProgram(), "bumpTex4"), 7);
+	glUniform1i(glGetUniformLocation(islandShader->GetProgram(), "bumpTex4"), 7);
 	glActiveTexture(GL_TEXTURE7);
 	glBindTexture(GL_TEXTURE_2D, islandBumpmaps[3]);
 
 	//Bind mask
 
-	glUniform1i(glGetUniformLocation(shader->GetProgram(), "mask"), 8);
+	glUniform1i(glGetUniformLocation(islandShader->GetProgram(), "mask"), 8);
 	glActiveTexture(GL_TEXTURE8);
 	glBindTexture(GL_TEXTURE_2D, islandMask);
 
