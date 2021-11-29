@@ -7,12 +7,14 @@ public:
 	Camera(void) {
 		yaw = 0.0f;
 		pitch = 0.0f;
+		canMove = false;
 	};
 
 	Camera(float pitch, float yaw, Vector3 position) {
 		this->pitch = pitch;
 		this->yaw = yaw;
 		this->position = position;
+		canMove = false;
 	}
 	~Camera(void) {};
 
@@ -32,4 +34,11 @@ protected:
 	float yaw;
 	float pitch;
 	Vector3 position;
+	bool canMove;
+	void FollowPath();
+	Vector3 startPosition = Vector3(16386 * 0.2, 2040, 16386 * 0.2);
+	Vector3 endPosition = Vector3(16386 * 0.8, 2040, 16386 * 0.2);
+	float startYaw = 225.0f;
+	float endYaw = 135.0f;
+	float travel = 0;
 };
