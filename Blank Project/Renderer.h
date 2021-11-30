@@ -35,6 +35,8 @@ protected:
 	void BuildNodeLists(SceneNode* from);
 	void SortNodeLists();
 	void ClearNodeLists();
+	void DrawNode(SceneNode* n);
+	void DrawNodes();
 
 	vector<SceneNode*> transparentNodeList;
 	vector<SceneNode*> nodeList;
@@ -52,6 +54,12 @@ protected:
 	Shader* reflectShader;
 	float waterRotate;
 	float waterCycle;
+
+	//Deffered rendering stuff
+	GLuint bufferFBO; //FBO for our G-Buffer pass
+	GLuint bufferColourTex; // Albedo goes here
+	GLuint bufferNormalTex; // Normals go here
+	GLuint bufferDepthTex; // Depth goes here
 
 	Shader* sceneShader;
 	Shader* shadowShader;

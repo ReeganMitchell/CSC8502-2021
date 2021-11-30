@@ -7,12 +7,16 @@ public:
 	Camera(void) {
 		yaw = 0.0f;
 		pitch = 0.0f;
+
+		canMove = true;
 	};
 
 	Camera(float pitch, float yaw, Vector3 position) {
 		this->pitch = pitch;
 		this->yaw = yaw;
 		this->position = position;
+
+		canMove = true;
 	}
 	~Camera(void) {};
 
@@ -32,4 +36,10 @@ protected:
 	float yaw;
 	float pitch;
 	Vector3 position;
+
+	bool canMove;
+
+	Vector3 positions[3];
+	float yaws[3];
+	float pitches[3];
 };

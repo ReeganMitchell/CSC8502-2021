@@ -230,10 +230,10 @@ void Renderer::DrawSkybox()
 void Renderer::RenderScene() {
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	DrawSkybox();
-	DrawWater();
 	DrawShadowScene();
 	//DrawHeightMap();
 	DrawMainScene();
+	DrawWater();
 }
 
 void Renderer::BuildNodeLists(SceneNode* from)
@@ -254,3 +254,40 @@ void Renderer::BuildNodeLists(SceneNode* from)
 		BuildNodeLists((*i));
 	}
 }
+
+//void Renderer::DrawNodes()
+//{
+//	for (const auto& i : nodeList) {
+//		DrawNode(i);
+//	}
+//	for (const auto& i : transparentNodeList) {
+//		DrawNode(i);
+//	}
+//}
+
+
+//void Renderer::DrawNode(SceneNode* n)
+//{
+//	if (n->GetMesh()) {
+//
+//		BindShader(sceneShader);
+//		SetShaderLight(*light);
+//		viewMatrix = camera->BuildViewMatrix();
+//		projMatrix = Matrix4::Perspective(1.0f, 15000.0f, (float)width / (float)height, 45.0f);
+//
+//		glUniform1i(glGetUniformLocation(sceneShader->GetProgram(), "diffuseTex"), 0);
+//		glUniform1i(glGetUniformLocation(sceneShader->GetProgram(), "bumpTex"), 1);
+//		glUniform1i(glGetUniformLocation(sceneShader->GetProgram(), "shadowTex"), 2);
+//		glUniform3fv(glGetUniformLocation(sceneShader->GetProgram(), "cameraPos"), 1, (float*)&camera->GetPosition());
+//		glUniform4fv(glGetUniformLocation(shader->GetProgram(), "nodeColour"), 1, (float*)&n->GetColour());
+//
+//		glActiveTexture(GL_TEXTURE0);
+//		glBindTexture(GL_TEXTURE_2D, sceneDiffuse);
+//		glActiveTexture(GL_TEXTURE1);
+//		glBindTexture(GL_TEXTURE_2D, sceneBump);
+//		glActiveTexture(GL_TEXTURE2);
+//		glBindTexture(GL_TEXTURE_2D, shadowTex);
+//
+//		n->Draw(*this);
+//	}
+//}

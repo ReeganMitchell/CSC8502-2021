@@ -32,6 +32,9 @@ public:
 	GLuint GetTexture() const { return texture; }
 	void SetTexture(GLuint tex) { texture = tex; }
 
+	Shader* GetShader() const { return shader; }
+	void SetShader(Shader* s) { shader = s; }
+
 	void AddChild(SceneNode* s);
 
 	virtual void Update(float dt);
@@ -54,4 +57,6 @@ protected:
 	float boundingRadius;
 	GLuint texture;
 	std::vector<SceneNode*> children;
+
+	Shader* shader;
 };
