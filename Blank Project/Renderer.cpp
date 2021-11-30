@@ -37,7 +37,8 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	sceneMeshes.emplace_back(Mesh::GenerateQuad());
-	heightMap = new HeightMap(TEXTUREDIR"noise.png");
+	sceneMeshes.emplace_back(Mesh::GenerateQuad());
+	heightMap = new HeightMap(TEXTUREDIR"islandHeightmap.png");
 	sceneMeshes.emplace_back(heightMap);
 	sceneMeshes.emplace_back(Mesh::LoadFromMeshFile("Sphere.msh"));
 	sceneMeshes.emplace_back(Mesh::LoadFromMeshFile("Cylinder.msh"));
@@ -62,9 +63,12 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	sceneTransforms.resize(5);
+	Vector3  heightmapSize = heightMap->GetHeightMapSize();
+
+	sceneTransforms.resize(6);
 	sceneTransforms[0] = Matrix4::Rotation(90, Vector3(1, 0, 0)) * Matrix4::Scale(Vector3(10, 10, 1));
-	sceneTransforms[1] = Matrix4::Translation(Vector3(0,-20,0)) * Matrix4::Scale(Vector3(0.1, 0.1, 0.1));
+	sceneTransforms[2] = Matrix4::Translation(Vector3(0,-20,0)) * Matrix4::Scale(Vector3(0.1, 0.5, 0.1));
+	sceneTransforms[1] = Matrix4::Translation(Vector3(heightmapSize.x /20, 0, heightmapSize.z /20)) * Matrix4::Rotation(90, Vector3(1, 0, 0)) * Matrix4::Scale(Vector3(heightmapSize.x / 20, heightmapSize.x / 20, 1));
 	sceneTime = 0.0f;
 	waterRotate = 0.0f;
 	waterCycle = 0.0f;
@@ -85,12 +89,16 @@ Renderer::~Renderer(void) {
 }
 
 void  Renderer::UpdateScene(float dt) {
-	camera->UpdateCamera(dt);
 	sceneTime += dt;
+	camera->UpdateCamera(dt);
+	viewMatrix = camera->BuildViewMatrix();
 
 	frameFrustum.FromMatrix(projMatrix * viewMatrix);
 
-	for (int i = 2; i < 5; i++) {
+	waterRotate += dt * 2.0f;
+	waterCycle += dt * 0.25f;
+
+	for (int i = 3; i < 6; i++) {
 		Vector3 t = Vector3(-10 + (5 * i), 2.0f + sin(sceneTime * i), 0);
 		sceneTransforms[i] = Matrix4::Translation(t) * Matrix4::Rotation(sceneTime * 10 * i, Vector3(1, 0, 0));
 	}
@@ -125,7 +133,7 @@ void Renderer::DrawMainScene()
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, shadowTex); 
 
-	for (int i = 1; i < 5; ++i) { 
+	for (int i = 2; i < 6; ++i) { 
 		modelMatrix = sceneTransforms[i];
 		UpdateShaderMatrices();
 		sceneMeshes[i]->Draw(); 
@@ -146,7 +154,7 @@ void Renderer::DrawShadowScene()
 	projMatrix = Matrix4::Perspective(1, 100, 1, 45);
 	shadowMatrix = projMatrix * viewMatrix; //used  later
 
-	for (int i = 1; i < 5; ++i) {
+	for (int i = 1; i < 6; ++i) {
 		modelMatrix = sceneTransforms[i];
 		UpdateShaderMatrices();
 		sceneMeshes[i]->Draw();
@@ -200,11 +208,11 @@ void Renderer::DrawWater()
 
 	Vector3 hSize = heightMap->GetHeightMapSize();
 
-	modelMatrix = Matrix4::Translation(hSize * 0.5f) * Matrix4::Scale(hSize * 0.5f) * Matrix4::Rotation(90, Vector3(1, 0, 0));
+	modelMatrix = sceneTransforms[1];
 	textureMatrix = Matrix4::Translation(Vector3(waterCycle, 0.0f, waterCycle)) * Matrix4::Scale(Vector3(10, 10, 10)) * Matrix4::Rotation(waterRotate, Vector3(0, 0, 1));
 
 	UpdateShaderMatrices();
-	sceneMeshes[0]->Draw();
+	sceneMeshes[1]->Draw();
 }
 
 void Renderer::DrawSkybox()
@@ -222,9 +230,9 @@ void Renderer::DrawSkybox()
 void Renderer::RenderScene() {
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	DrawSkybox();
+	DrawWater();
 	DrawShadowScene();
 	//DrawHeightMap();
-	DrawWater();
 	DrawMainScene();
 }
 
