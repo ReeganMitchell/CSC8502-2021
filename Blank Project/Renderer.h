@@ -64,13 +64,13 @@ protected:
 	Shader* sceneShader;
 	Shader* shadowShader;
 
-	GLuint shadowTex;
+	GLuint shadowTex[6];
+	GLuint shadowFBO[6];
 
 	GLuint sceneDiffuse;
 	GLuint sceneBump;
 	float sceneTime;
 
-	GLuint shadowFBO;
 
 	Light* light;
 	Camera* camera;
