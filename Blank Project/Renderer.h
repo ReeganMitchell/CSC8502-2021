@@ -21,13 +21,12 @@ public:
 
 	void RenderScene() override;
 	void UpdateScene(float dt) override;
+	void ToggleGamma();
 protected:
 	void PresentScene();
 	void DrawPostProcess();
 	void DrawMainScene();
 	void DrawShadowScene();
-
-	void DrawHeightMap();
 	void DrawWater();
 	void DrawSkybox();
 
@@ -41,6 +40,7 @@ protected:
 	vector<SceneNode*> transparentNodeList;
 	vector<SceneNode*> nodeList;
 	SceneNode* root;
+	bool renderShadows;
 
 	//heightmap stuff
 	HeightMap* heightMap;
@@ -71,6 +71,7 @@ protected:
 	GLuint sceneBump;
 	float sceneTime;
 
+	bool gCorrection;
 
 	Light* light;
 	Camera* camera;
