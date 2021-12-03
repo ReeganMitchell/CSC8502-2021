@@ -8,7 +8,8 @@ public:
 		yaw = 0.0f;
 		pitch = 0.0f;
 
-		canMove = true;
+		canMove = false;
+		nextPoint = 1;
 	};
 
 	Camera(float pitch, float yaw, Vector3 position) {
@@ -16,7 +17,8 @@ public:
 		this->yaw = yaw;
 		this->position = position;
 
-		canMove = true;
+		canMove = false;
+		nextPoint = 1;
 	}
 	~Camera(void) {};
 
@@ -39,7 +41,19 @@ protected:
 
 	bool canMove;
 
-	Vector3 positions[3];
-	float yaws[3];
-	float pitches[3];
+	Vector3 positions[4] = {
+		Vector3(400.0f, 40.0f, 420.0f),
+		Vector3(340.0f, 100.0f, 520.0f),
+		Vector3(230.0f, 10.0f, 420.0f),
+		Vector3(204.0f, 6.0f, 410.0f)
+	};
+	float yaws[4] = {
+		-45.0f,40.0f,-5.0f,-45.0f
+	};
+	float pitches[4]{
+		0.0,-30.0,-10.0,0.0
+	};
+
+	float travel = 0;
+	int nextPoint;
 };

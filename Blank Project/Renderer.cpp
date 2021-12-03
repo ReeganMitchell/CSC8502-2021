@@ -13,6 +13,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 	root = new SceneNode();
 	camera = new  Camera(0.0f, 315.0f, Vector3(200.0f, 6.0f, 500.0f));
 	light = new  Light(Vector3(224.0f, 4.2f, 400.0f),Vector4(1, 1, 1, 1), 250.0f);
+	light->SetColour(Vector4(1, 0.9, 0.5, 1));
 
 	sceneShader = new Shader("ShadowSceneVertex.glsl", "ShadowSceneFragment.glsl");
 	shadowShader = new Shader("ShadowVertex.glsl", "ShadowFragment.glsl");
@@ -298,7 +299,6 @@ void Renderer::addProps()
 	propTextures.emplace_back(SOIL_load_OGL_texture(TEXTUREDIR"beach props/textures/cooler.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y));
 	propTextures.emplace_back(SOIL_load_OGL_texture(TEXTUREDIR"beach props/textures/treediffuse.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y));
 
-
 	//Place objects into scene graph
 
 	SceneNode* firepit = new SceneNode(sceneMeshes[6]);
@@ -318,7 +318,7 @@ void Renderer::addProps()
 	SceneNode* parasol1 = new SceneNode(sceneMeshes[5]);
 	parasol1->SetTransform(Matrix4::Translation(Vector3(229.0f, 2.0f, 409.0f)) * Matrix4::Rotation(-8, Vector3(0, 0, 1)) * Matrix4::Scale(Vector3(1, 1, 1) * 3));
 	parasol1->SetShader(sceneShader);
-	parasol1->SetTexture(propTextures[5]);
+	parasol1->SetTexture(propTextures[2]);
 	parasol1->SetBoundingRadius(5.0f);
 	root->AddChild(parasol1);
 
@@ -336,15 +336,22 @@ void Renderer::addProps()
 	floater->SetBoundingRadius(5.0f);
 	root->AddChild(floater);
 
+	SceneNode* table = new SceneNode(sceneMeshes[4]);
+	table->SetTransform(Matrix4::Translation(Vector3(425.0f, 29.0f, 380.0f)) * Matrix4::Scale(Vector3(1.5, 1.5, 1.5) * 3));
+	table->SetShader(sceneShader);
+	table->SetTexture(propTextures[1]);
+	table->SetBoundingRadius(5.0f);
+	root->AddChild(table);
+
 	Matrix4 treeTransforms[8] = {
-		Matrix4::Translation(Vector3(295.0f, 22.0f, 380.0f)) * Matrix4::Rotation(-90, Vector3(0, 1, 0)) * Matrix4::Scale(Vector3(2, 1.5, 2) * 3),
-		Matrix4::Translation(Vector3(305.0f, 22.0f, 403.0f)) * Matrix4::Rotation(-37, Vector3(0, 1, 0)) * Matrix4::Scale(Vector3(2, 1.5, 2) * 3),
-		Matrix4::Translation(Vector3(295.0f, 17.0f, 390.0f)) * Matrix4::Rotation(21, Vector3(0, 1, 0)) * Matrix4::Scale(Vector3(2, 1.5, 2) * 3),
-		Matrix4::Translation(Vector3(290.0f, 13.0f, 423.0f)) * Matrix4::Rotation(69, Vector3(0, 1, 0)) * Matrix4::Scale(Vector3(2, 1.5, 2) * 3),
-		Matrix4::Translation(Vector3(345.0f, 22.0f, 380.0f))* Matrix4::Rotation(-90, Vector3(0, 1, 0))* Matrix4::Scale(Vector3(2, 1.5, 2) * 3),
-		Matrix4::Translation(Vector3(365.0f, 22.0f, 403.0f))* Matrix4::Rotation(-37, Vector3(0, 1, 0))* Matrix4::Scale(Vector3(2, 1.5, 2) * 3),
-		Matrix4::Translation(Vector3(325.0f, 17.0f, 390.0f))* Matrix4::Rotation(21, Vector3(0, 1, 0))* Matrix4::Scale(Vector3(2, 1.5, 2) * 3),
-		Matrix4::Translation(Vector3(310.0f, 13.0f, 423.0f))* Matrix4::Rotation(69, Vector3(0, 1, 0))* Matrix4::Scale(Vector3(2, 1.5, 2) * 3)
+		Matrix4::Translation(Vector3(290.0f, 13.0f, 423.0f))* Matrix4::Rotation(69, Vector3(0, 1, 0))* Matrix4::Scale(Vector3(2, 1.5, 2) * 3),
+		Matrix4::Translation(Vector3(300.0f, 22.0f, 380.0f)) * Matrix4::Rotation(-90, Vector3(0, 1, 0)) * Matrix4::Scale(Vector3(2, 1.5, 2) * 3),
+		Matrix4::Translation(Vector3(295.0f, 15.0f, 390.0f)) * Matrix4::Rotation(21, Vector3(0, 1, 0)) * Matrix4::Scale(Vector3(2, 1.5, 2) * 3),
+		Matrix4::Translation(Vector3(309.0f, 22.0f, 403.0f))* Matrix4::Rotation(-37, Vector3(0, 1, 0))* Matrix4::Scale(Vector3(2, 1.5, 2) * 3),
+		Matrix4::Translation(Vector3(310.0f, 15.0f, 423.0f))* Matrix4::Rotation(69, Vector3(0, 1, 0))* Matrix4::Scale(Vector3(2, 1.5, 2) * 3),
+		Matrix4::Translation(Vector3(425.0f, 28.0f, 390.0f))* Matrix4::Rotation(21, Vector3(0, 1, 0))* Matrix4::Scale(Vector3(2, 1.5, 2) * 3),
+		Matrix4::Translation(Vector3(445.0f, 28.0f, 380.0f))* Matrix4::Rotation(-90, Vector3(0, 1, 0))* Matrix4::Scale(Vector3(2, 1.5, 2) * 3),
+		Matrix4::Translation(Vector3(465.0f, 28.0f, 403.0f))* Matrix4::Rotation(-37, Vector3(0, 1, 0))* Matrix4::Scale(Vector3(2, 1.5, 2) * 3)
 	};
 
 	SceneNode* treeCluster = new SceneNode();
