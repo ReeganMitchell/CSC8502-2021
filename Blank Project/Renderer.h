@@ -4,6 +4,7 @@
 #include <nclgl\SceneNode.h>
 #include <nclgl\Frustum.h>
 #include <nclgl\HeightMap.h>
+#include <nclgl/ParticleGenerator.h>
 
 class Camera;
 class SceneNode;
@@ -37,13 +38,21 @@ protected:
 	void DrawNode(SceneNode* n);
 	void DrawNodes();
 
+	void addProps();
+	vector<GLuint> propTextures;
+
 	vector<SceneNode*> transparentNodeList;
 	vector<SceneNode*> nodeList;
 	SceneNode* root;
 	bool renderShadows;
 
 	//heightmap stuff
+	void DrawHeightMap();
 	HeightMap* heightMap;
+	Shader* islandShader;
+	GLuint* islandTextures;
+	GLuint* islandBumpmaps;
+	GLuint islandMask;
 
 	//skybox stuff
 	Shader* skyboxShader;
@@ -54,6 +63,10 @@ protected:
 	Shader* reflectShader;
 	float waterRotate;
 	float waterCycle;
+
+	//particle stuff
+	ParticleGenerator* fire;
+	Shader* particleShader;
 
 	//Deffered rendering stuff
 	GLuint bufferFBO; //FBO for our G-Buffer pass

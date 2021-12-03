@@ -11,13 +11,14 @@ const int POST_PASSES = 10;
 
 Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 	root = new SceneNode();
-	camera = new  Camera(-30.0f, 315.0f, Vector3(-8.0f, 5.0f, 8.0f));
-	light = new  Light(Vector3(400.0f, 50.0f, 600.0f),Vector4(1, 1, 1, 1), 250.0f);
+	camera = new  Camera(0.0f, 315.0f, Vector3(200.0f, 6.0f, 500.0f));
+	light = new  Light(Vector3(224.0f, 4.2f, 400.0f),Vector4(1, 1, 1, 1), 250.0f);
 
 	sceneShader = new Shader("ShadowSceneVertex.glsl", "ShadowSceneFragment.glsl");
 	shadowShader = new Shader("ShadowVertex.glsl", "ShadowFragment.glsl");
 	skyboxShader = new Shader("SkyboxVertex.glsl", "SkyboxFragment.glsl");
 	reflectShader = new Shader("ReflectVertex.glsl", "ReflectFragment.glsl");
+	islandShader = new Shader("ShadowSceneVertex.glsl", "islandFragment.glsl");
 
 	gCorrection = false;
 	renderShadows = false;
@@ -43,19 +44,37 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+
 	sceneMeshes.emplace_back(Mesh::GenerateQuad());
 	sceneMeshes.emplace_back(Mesh::GenerateQuad());
 	heightMap = new HeightMap(TEXTUREDIR"islandHeightmap.png");
 	sceneMeshes.emplace_back(heightMap);
-	sceneMeshes.emplace_back(Mesh::LoadFromMeshFile("Sphere.msh"));
-	sceneMeshes.emplace_back(Mesh::LoadFromMeshFile("Cylinder.msh"));
-	sceneMeshes.emplace_back(Mesh::LoadFromMeshFile("Cone.msh"));
 
-	sceneDiffuse = SOIL_load_OGL_texture(TEXTUREDIR"Barren Reds.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+
+	sceneDiffuse = SOIL_load_OGL_texture(TEXTUREDIR"beach props/textures/big_table.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
 	sceneBump = SOIL_load_OGL_texture(TEXTUREDIR"Barren RedsDOT3.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	cubeMap = SOIL_load_OGL_cubemap(TEXTUREDIR"rusted_west.jpg", TEXTUREDIR"rusted_east.jpg", TEXTUREDIR"rusted_up.jpg", TEXTUREDIR"rusted_down.jpg",
 		TEXTUREDIR"rusted_south.jpg", TEXTUREDIR"rusted_north.jpg", SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, 0);
 	waterTex = SOIL_load_OGL_texture(TEXTUREDIR"water.TGA", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+
+	islandTextures = new GLuint[4];
+	islandTextures[0] = SOIL_load_OGL_texture(TEXTUREDIR"islandSand.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	islandTextures[1] = SOIL_load_OGL_texture(TEXTUREDIR"islandMud.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	islandTextures[2] = SOIL_load_OGL_texture(TEXTUREDIR"islandGrass.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	islandTextures[3] = SOIL_load_OGL_texture(TEXTUREDIR"islandRock.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+
+	islandBumpmaps = new GLuint[4];
+	islandBumpmaps[0] = SOIL_load_OGL_texture(TEXTUREDIR"islandSandNormal.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	islandBumpmaps[1] = SOIL_load_OGL_texture(TEXTUREDIR"islandMudNormal.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	islandBumpmaps[2] = SOIL_load_OGL_texture(TEXTUREDIR"islandGrassNormal.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	islandBumpmaps[3] = SOIL_load_OGL_texture(TEXTUREDIR"islandRockNormal.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+
+	islandMask = SOIL_load_OGL_texture(TEXTUREDIR"islandMask.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	SetTextureRepeating(islandMask, true);
+	for (int i = 0; i < 4; i++) {
+		SetTextureRepeating(islandTextures[i], true);
+		SetTextureRepeating(islandBumpmaps[i], true);
+	}
 
 	if (!sceneDiffuse || !sceneBump || !cubeMap || !waterTex) {
 		return;
@@ -65,6 +84,11 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 	SetTextureRepeating(sceneBump, true);
 	SetTextureRepeating(waterTex, true);
 
+	//Initialise Particle generator
+	//fire = new ParticleGenerator(particleShader, sceneDiffuse, 1000);
+
+
+
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	glEnable(GL_BLEND);
@@ -72,27 +96,17 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 
 	Vector3  heightmapSize = heightMap->GetHeightMapSize();
 
-	SceneNode* shapes = new SceneNode();
-
-	sceneTransforms.resize(6);
+	sceneTransforms.resize(3);
 	sceneTransforms[0] = Matrix4::Rotation(90, Vector3(1, 0, 0)) * Matrix4::Scale(Vector3(10, 10, 1));
-	sceneTransforms[2] = Matrix4::Translation(Vector3(0,-20,0)) * Matrix4::Scale(Vector3(0.1, 0.5, 0.1));
-	sceneTransforms[1] = Matrix4::Translation(Vector3(heightmapSize.x /20, 0.1, heightmapSize.z /20)) * Matrix4::Rotation(90, Vector3(1, 0, 0)) * Matrix4::Scale(Vector3(heightmapSize.x / 20, heightmapSize.x / 20, 1));
+	sceneTransforms[2] = Matrix4::Translation(Vector3(0,-20,0)) * Matrix4::Scale(Vector3(0.05, 0.3, 0.05));
+	sceneTransforms[1] = Matrix4::Translation(Vector3(heightmapSize.x /40, 0.0f, heightmapSize.z /40)) * Matrix4::Rotation(90, Vector3(1, 0, 0)) * Matrix4::Scale(Vector3(heightmapSize.x / 40, heightmapSize.x / 40, 1));
 	SceneNode* island = new SceneNode(sceneMeshes[2]);
 	island->SetTransform(sceneTransforms[2]);
-	island->SetShader(sceneShader);
+	island->SetShader(islandShader);
 	island->SetBoundingRadius(2000.0f);
 	root->AddChild(island);
-	for (int i = 3; i < 6; i++) {
-		Vector3 t = Vector3(-10 + (5 * i), 2.0f + sin(i), 0);
-		sceneTransforms[i] = Matrix4::Translation(t) * Matrix4::Rotation(10 * i, Vector3(1, 0, 0));
 
-		SceneNode* shape = new SceneNode(sceneMeshes[i]);
-		shape->SetTransform(sceneTransforms[i]);
-		shape->SetShader(sceneShader);
-		shapes->AddChild(shape);
-	}
-	root->AddChild(shapes);
+	addProps();
 
 	sceneTime = 0.0f;
 	waterRotate = 0.0f;
@@ -121,7 +135,10 @@ void Renderer::ToggleGamma() {
 void  Renderer::UpdateScene(float dt) {
 	sceneTime += dt;
 	camera->UpdateCamera(dt);
+	root->Update(dt);
+	projMatrix = Matrix4::Perspective(1.0f, 15000.0f, (float)width / (float)height, 45.0f);
 	viewMatrix = camera->BuildViewMatrix();
+
 
 	frameFrustum.FromMatrix(projMatrix * viewMatrix);
 
@@ -142,7 +159,7 @@ void Renderer::DrawPostProcess()
 void Renderer::DrawMainScene()
 {
 	renderShadows = false;
-
+	//DrawHeightMap();
 	DrawNodes();
 }
 
@@ -263,6 +280,89 @@ void Renderer::DrawNodes()
 	}
 }
 
+void Renderer::addProps()
+{
+	sceneMeshes.emplace_back(Mesh::LoadFromMeshFile("chair_04.msh"));//3
+	sceneMeshes.emplace_back(Mesh::LoadFromMeshFile("big_table.msh"));
+	sceneMeshes.emplace_back(Mesh::LoadFromMeshFile("parasol.msh"));//5
+	sceneMeshes.emplace_back(Mesh::LoadFromMeshFile("fire_camp.msh"));
+	sceneMeshes.emplace_back(Mesh::LoadFromMeshFile("float_02.msh"));//7
+	sceneMeshes.emplace_back(Mesh::LoadFromMeshFile("cooler.msh"));
+	sceneMeshes.emplace_back(Mesh::LoadFromMeshFile("palm_tree.msh"));//9
+
+	propTextures.emplace_back(SOIL_load_OGL_texture(TEXTUREDIR"beach props/textures/chair_04.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y));
+	propTextures.emplace_back(SOIL_load_OGL_texture(TEXTUREDIR"beach props/textures/big_table.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y));
+	propTextures.emplace_back(SOIL_load_OGL_texture(TEXTUREDIR"beach props/textures/parasol.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y));
+	propTextures.emplace_back(SOIL_load_OGL_texture(TEXTUREDIR"beach props/textures/fire_camp.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y));
+	propTextures.emplace_back(SOIL_load_OGL_texture(TEXTUREDIR"beach props/textures/float_02.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y));
+	propTextures.emplace_back(SOIL_load_OGL_texture(TEXTUREDIR"beach props/textures/cooler.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y));
+	propTextures.emplace_back(SOIL_load_OGL_texture(TEXTUREDIR"beach props/textures/treediffuse.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y));
+
+
+	//Place objects into scene graph
+
+	SceneNode* firepit = new SceneNode(sceneMeshes[6]);
+	firepit->SetTransform(Matrix4::Translation(Vector3(224.0f, 2.2f, 400.0f)) * Matrix4::Rotation(8,Vector3(0,0,1)) * Matrix4::Scale(Vector3(0.5,0.5,0.5) * 2));
+	firepit->SetShader(sceneShader);
+	firepit->SetTexture(propTextures[3]);
+	firepit->SetBoundingRadius(15.0f);
+	root->AddChild(firepit);
+
+	SceneNode* cooler = new SceneNode(sceneMeshes[8]);
+	cooler->SetTransform(Matrix4::Translation(Vector3(228.0f, 2.1f, 408.0f)) * Matrix4::Scale(Vector3(1,1,1) * 3));
+	cooler->SetShader(sceneShader);
+	cooler->SetTexture(propTextures[5]);
+	cooler->SetBoundingRadius(5.0f);
+	root->AddChild(cooler);
+
+	SceneNode* parasol1 = new SceneNode(sceneMeshes[5]);
+	parasol1->SetTransform(Matrix4::Translation(Vector3(229.0f, 2.0f, 409.0f)) * Matrix4::Rotation(-8, Vector3(0, 0, 1)) * Matrix4::Scale(Vector3(1, 1, 1) * 3));
+	parasol1->SetShader(sceneShader);
+	parasol1->SetTexture(propTextures[5]);
+	parasol1->SetBoundingRadius(5.0f);
+	root->AddChild(parasol1);
+
+	SceneNode* chair1 = new SceneNode(sceneMeshes[3]);
+	chair1->SetTransform(Matrix4::Translation(Vector3(222.0f, 2.0f, 380.0f)) * Matrix4::Rotation(8, Vector3(0, 0, 1)) * Matrix4::Rotation(-90, Vector3(0, 1, 0)) * Matrix4::Scale(Vector3(2, 2, 2) * 3));
+	chair1->SetShader(sceneShader);
+	chair1->SetTexture(propTextures[0]);
+	chair1->SetBoundingRadius(5.0f);
+	root->AddChild(chair1);
+
+	SceneNode* floater = new SceneNode(sceneMeshes[7]);
+	floater->SetTransform(Matrix4::Translation(Vector3(190.0f, 0.0f, 390.0f)) * Matrix4::Scale(Vector3(1.5, 1.5, 1.5) * 3));
+	floater->SetShader(sceneShader);
+	floater->SetTexture(propTextures[4]);
+	floater->SetBoundingRadius(5.0f);
+	root->AddChild(floater);
+
+	Matrix4 treeTransforms[8] = {
+		Matrix4::Translation(Vector3(295.0f, 22.0f, 380.0f)) * Matrix4::Rotation(-90, Vector3(0, 1, 0)) * Matrix4::Scale(Vector3(2, 1.5, 2) * 3),
+		Matrix4::Translation(Vector3(305.0f, 22.0f, 403.0f)) * Matrix4::Rotation(-37, Vector3(0, 1, 0)) * Matrix4::Scale(Vector3(2, 1.5, 2) * 3),
+		Matrix4::Translation(Vector3(295.0f, 17.0f, 390.0f)) * Matrix4::Rotation(21, Vector3(0, 1, 0)) * Matrix4::Scale(Vector3(2, 1.5, 2) * 3),
+		Matrix4::Translation(Vector3(290.0f, 13.0f, 423.0f)) * Matrix4::Rotation(69, Vector3(0, 1, 0)) * Matrix4::Scale(Vector3(2, 1.5, 2) * 3),
+		Matrix4::Translation(Vector3(345.0f, 22.0f, 380.0f))* Matrix4::Rotation(-90, Vector3(0, 1, 0))* Matrix4::Scale(Vector3(2, 1.5, 2) * 3),
+		Matrix4::Translation(Vector3(365.0f, 22.0f, 403.0f))* Matrix4::Rotation(-37, Vector3(0, 1, 0))* Matrix4::Scale(Vector3(2, 1.5, 2) * 3),
+		Matrix4::Translation(Vector3(325.0f, 17.0f, 390.0f))* Matrix4::Rotation(21, Vector3(0, 1, 0))* Matrix4::Scale(Vector3(2, 1.5, 2) * 3),
+		Matrix4::Translation(Vector3(310.0f, 13.0f, 423.0f))* Matrix4::Rotation(69, Vector3(0, 1, 0))* Matrix4::Scale(Vector3(2, 1.5, 2) * 3)
+	};
+
+	SceneNode* treeCluster = new SceneNode();
+	treeCluster->SetTransform(Matrix4::Translation(Vector3(0.0f, 0.0f, 0.0f)));
+	treeCluster->SetBoundingRadius(2000.0f);
+
+	for (int i = 0; i < 8; i++) {
+		SceneNode* tree = new SceneNode(sceneMeshes[9]);
+		tree->SetTransform(treeTransforms[i]);
+		tree->SetShader(sceneShader);
+		tree->SetTexture(propTextures[6]);
+		tree->SetBoundingRadius(25.0f);
+		tree->SetColour(Vector4(1, 1, 1, 0));
+		treeCluster->AddChild(tree);
+	}
+	root->AddChild(treeCluster);
+}
+
 
 void Renderer::DrawNode(SceneNode* n)
 {
@@ -290,7 +390,7 @@ void Renderer::DrawNode(SceneNode* n)
 			shadowMatrix = shadowMatrices[0];
 
 			glUniform1i(glGetUniformLocation(s->GetProgram(), "diffuseTex"), 0);
-			glUniform1i(glGetUniformLocation(s->GetProgram(), "bumpTex"), 1);
+			//glUniform1i(glGetUniformLocation(s->GetProgram(), "bumpTex"), 1);
 			glUniform1i(glGetUniformLocation(s->GetProgram(), "shadowTex1"), 2);
 			glUniform1i(glGetUniformLocation(s->GetProgram(), "shadowTex2"), 3);
 			glUniform1i(glGetUniformLocation(s->GetProgram(), "shadowTex3"), 4);
@@ -299,8 +399,10 @@ void Renderer::DrawNode(SceneNode* n)
 			glUniform1i(glGetUniformLocation(s->GetProgram(), "shadowTex6"), 7);
 			glUniform3fv(glGetUniformLocation(s->GetProgram(), "cameraPos"), 1, (float*)&camera->GetPosition());
 
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, sceneDiffuse);
+			if (n->GetTexture()) {
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, n->GetTexture());
+			}
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, sceneBump);
 			for (int i = 0; i < 6; i++) {
@@ -310,12 +412,55 @@ void Renderer::DrawNode(SceneNode* n)
 
 			modelMatrix = n->GetTransform();
 			UpdateShaderMatrices();
-			glUniformMatrix4fv(glGetUniformLocation(sceneShader->GetProgram(), "shadowMatrix[0]"), 1, false, shadowMatrices[0].values);
-			glUniformMatrix4fv(glGetUniformLocation(sceneShader->GetProgram(), "shadowMatrix[1]"), 1, false, shadowMatrices[1].values);
-			glUniformMatrix4fv(glGetUniformLocation(sceneShader->GetProgram(), "shadowMatrix[2]"), 1, false, shadowMatrices[2].values);
-			glUniformMatrix4fv(glGetUniformLocation(sceneShader->GetProgram(), "shadowMatrix[3]"), 1, false, shadowMatrices[3].values);
-			glUniformMatrix4fv(glGetUniformLocation(sceneShader->GetProgram(), "shadowMatrix[4]"), 1, false, shadowMatrices[4].values);
-			glUniformMatrix4fv(glGetUniformLocation(sceneShader->GetProgram(), "shadowMatrix[5]"), 1, false, shadowMatrices[5].values);
+			glUniformMatrix4fv(glGetUniformLocation(s->GetProgram(), "shadowMatrix[0]"), 1, false, shadowMatrices[0].values);
+			glUniformMatrix4fv(glGetUniformLocation(s->GetProgram(), "shadowMatrix[1]"), 1, false, shadowMatrices[1].values);
+			glUniformMatrix4fv(glGetUniformLocation(s->GetProgram(), "shadowMatrix[2]"), 1, false, shadowMatrices[2].values);
+			glUniformMatrix4fv(glGetUniformLocation(s->GetProgram(), "shadowMatrix[3]"), 1, false, shadowMatrices[3].values);
+			glUniformMatrix4fv(glGetUniformLocation(s->GetProgram(), "shadowMatrix[4]"), 1, false, shadowMatrices[4].values);
+			glUniformMatrix4fv(glGetUniformLocation(s->GetProgram(), "shadowMatrix[5]"), 1, false, shadowMatrices[5].values);
+
+			if (s == islandShader) {
+				//Bind Textures
+
+				glUniform1i(glGetUniformLocation(islandShader->GetProgram(), "diffuseTex1"), 8);
+				glActiveTexture(GL_TEXTURE8);
+				glBindTexture(GL_TEXTURE_2D, islandTextures[0]);
+
+				glUniform1i(glGetUniformLocation(islandShader->GetProgram(), "diffuseTex2"), 9);
+				glActiveTexture(GL_TEXTURE9);
+				glBindTexture(GL_TEXTURE_2D, islandTextures[1]);
+
+				glUniform1i(glGetUniformLocation(islandShader->GetProgram(), "diffuseTex3"), 10);
+				glActiveTexture(GL_TEXTURE10);
+				glBindTexture(GL_TEXTURE_2D, islandTextures[2]);
+
+				glUniform1i(glGetUniformLocation(islandShader->GetProgram(), "diffuseTex4"), 11);
+				glActiveTexture(GL_TEXTURE11);
+				glBindTexture(GL_TEXTURE_2D, islandTextures[3]);
+
+				//Bind Bumps
+				glUniform1i(glGetUniformLocation(islandShader->GetProgram(), "bumpTex1"), 12);
+				glActiveTexture(GL_TEXTURE12);
+				glBindTexture(GL_TEXTURE_2D, islandBumpmaps[0]);
+
+				glUniform1i(glGetUniformLocation(islandShader->GetProgram(), "bumpTex2"), 13);
+				glActiveTexture(GL_TEXTURE13);
+				glBindTexture(GL_TEXTURE_2D, islandBumpmaps[1]);
+
+				glUniform1i(glGetUniformLocation(islandShader->GetProgram(), "bumpTex3"), 14);
+				glActiveTexture(GL_TEXTURE14);
+				glBindTexture(GL_TEXTURE_2D, islandBumpmaps[2]);
+
+				glUniform1i(glGetUniformLocation(islandShader->GetProgram(), "bumpTex4"), 15);
+				glActiveTexture(GL_TEXTURE15);
+				glBindTexture(GL_TEXTURE_2D, islandBumpmaps[3]);
+
+				//Bind mask
+
+				glUniform1i(glGetUniformLocation(islandShader->GetProgram(), "mask"), 16);
+				glActiveTexture(GL_TEXTURE16);
+				glBindTexture(GL_TEXTURE_2D, islandMask);
+			}
 
 			n->Draw(*this);
 		}
