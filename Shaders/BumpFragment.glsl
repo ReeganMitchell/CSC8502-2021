@@ -7,7 +7,6 @@ uniform vec3 cameraPos;
 uniform vec4 lightColour;
 uniform vec3 lightPos;
 uniform float lightRadius;
-uniform vec3 lightDir;
 
 in Vertex{
 	vec4 colour;
@@ -21,7 +20,7 @@ in Vertex{
 out vec4 fragColour;
 
 void main(void) {
-	vec3 incident = normalize(lightDir);
+	vec3 incident = normalize(lightPos - IN.worldPos);
 	vec3 viewDir = normalize(cameraPos - IN.worldPos);
 	vec3 halfDir = normalize(incident + viewDir);
 
