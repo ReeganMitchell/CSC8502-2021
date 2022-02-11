@@ -3,7 +3,7 @@
 uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
 uniform mat4 projMatrix;
-uniform mat4 shadowMatrix;
+uniform mat4 shadowMatrix[6];
 
 uniform vec3 lightPos;
 
@@ -20,7 +20,7 @@ out Vertex{
 	vec3 tangent;
 	vec3 binormal;
 	vec3 worldPos;
-	vec4 shadowProj;
+	vec4 shadowProj[6];
 } OUT;
 
 void main(void){
@@ -40,5 +40,7 @@ void main(void){
 
 	vec3 viewDir = normalize(lightPos - worldPos.xyz);
 	vec4 pushVal = vec4(OUT.normal, 0) * dot(viewDir, OUT.normal);
-	OUT.shadowProj = shadowMatrix * (worldPos + pushVal);
+	for (int i = 0; i < 6; i++){
+		OUT.shadowProj[i] = shadowMatrix[i] * (worldPos + pushVal);
+	}
 }

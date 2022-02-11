@@ -2,7 +2,12 @@
 
 uniform sampler2D diffuseTex;
 uniform sampler2D bumpTex;
-uniform sampler2D shadowTex;
+uniform sampler2D shadowTex1;
+uniform sampler2D shadowTex2;
+uniform sampler2D shadowTex3;
+uniform sampler2D shadowTex4;
+uniform sampler2D shadowTex5;
+uniform sampler2D shadowTex6;
 uniform vec3 cameraPos;
 uniform vec4 lightColour;
 uniform vec3 lightPos;
@@ -15,7 +20,7 @@ in Vertex{
 	vec3 tangent;
 	vec3 binormal;
 	vec3 worldPos;
-	vec4 shadowProj;
+	vec4 shadowProj[6];
 } IN;
 
 out vec4 fragColour;
@@ -40,10 +45,55 @@ void main(void) {
 
 	float shadow = 1.0;
 
-	vec3 shadowNDC = IN.shadowProj.xyz / IN.shadowProj.w;
+	vec3 shadowNDC = IN.shadowProj[0].xyz / IN.shadowProj[0].w;
 	if (abs(shadowNDC.x) < 1.0f && abs(shadowNDC.y) < 1.0f && abs(shadowNDC.z) < 1.0f ){
 		vec3 biasCoord = shadowNDC * 0.5f + 0.5f;
-		float shadowZ = texture(shadowTex, biasCoord.xy).x;
+		float shadowZ = texture(shadowTex1, biasCoord.xy).x;
+		if (shadowZ < biasCoord.z) {
+			shadow = 0.0f;
+		}
+	}
+
+	shadowNDC = IN.shadowProj[1].xyz / IN.shadowProj[1].w;
+	if (abs(shadowNDC.x) < 1.0f && abs(shadowNDC.y) < 1.0f && abs(shadowNDC.z) < 1.0f ){
+		vec3 biasCoord = shadowNDC * 0.5f + 0.5f;
+		float shadowZ = texture(shadowTex2, biasCoord.xy).x;
+		if (shadowZ < biasCoord.z) {
+			shadow = 0.0f;
+		}
+	}
+
+	shadowNDC = IN.shadowProj[2].xyz / IN.shadowProj[2].w;
+	if (abs(shadowNDC.x) < 1.0f && abs(shadowNDC.y) < 1.0f && abs(shadowNDC.z) < 1.0f ){
+		vec3 biasCoord = shadowNDC * 0.5f + 0.5f;
+		float shadowZ = texture(shadowTex3, biasCoord.xy).x;
+		if (shadowZ < biasCoord.z) {
+			shadow = 0.0f;
+		}
+	}
+
+	shadowNDC = IN.shadowProj[3].xyz / IN.shadowProj[3].w;
+	if (abs(shadowNDC.x) < 1.0f && abs(shadowNDC.y) < 1.0f && abs(shadowNDC.z) < 1.0f ){
+		vec3 biasCoord = shadowNDC * 0.5f + 0.5f;
+		float shadowZ = texture(shadowTex4, biasCoord.xy).x;
+		if (shadowZ < biasCoord.z) {
+			shadow = 0.0f;
+		}
+	}
+
+	shadowNDC = IN.shadowProj[4].xyz / IN.shadowProj[4].w;
+	if (abs(shadowNDC.x) < 1.0f && abs(shadowNDC.y) < 1.0f && abs(shadowNDC.z) < 1.0f ){
+		vec3 biasCoord = shadowNDC * 0.5f + 0.5f;
+		float shadowZ = texture(shadowTex5, biasCoord.xy).x;
+		if (shadowZ < biasCoord.z) {
+			shadow = 0.0f;
+		}
+	}
+
+	shadowNDC = IN.shadowProj[5].xyz / IN.shadowProj[5].w;
+	if (abs(shadowNDC.x) < 1.0f && abs(shadowNDC.y) < 1.0f && abs(shadowNDC.z) < 1.0f ){
+		vec3 biasCoord = shadowNDC * 0.5f + 0.5f;
+		float shadowZ = texture(shadowTex6, biasCoord.xy).x;
 		if (shadowZ < biasCoord.z) {
 			shadow = 0.0f;
 		}
@@ -53,6 +103,7 @@ void main(void) {
 	fragColour.rgb = surface * attenuation * lambert;
 	fragColour.rgb += (lightColour.rgb * attenuation * specFactor) * 0.33;
 	fragColour.rgb *= shadow;
-	fragColour.rgb += surface * 0.1f;
+	fragColour.rgb += surface * 0.15f;
+
 	fragColour.a = diffuse.a;
 }

@@ -48,6 +48,9 @@ public:
 	MeshAnimation* GetAnim() const { return anim; }
 	void SetAnim(MeshAnimation* a) { anim = a; }
 
+	Shader* GetShader() const { return shader; }
+	void SetShader(Shader* s) { shader = s; }
+
 	void AddChild(SceneNode* s);
 
 	virtual void Update(float dt);
@@ -75,4 +78,6 @@ protected:
 	GLuint texture = NULL;
 	GLuint normal;
 	std::vector<SceneNode*> children;
+
+	Shader* shader;
 };

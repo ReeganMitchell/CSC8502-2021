@@ -26,7 +26,7 @@ void Camera::UpdateCamera(float dt)
 		Vector3 forward = rotation * Vector3(0, 0, -1);
 		Vector3 right = rotation * Vector3(1, 0, 0);
 
-		float speed = 200.0f * dt;
+		float speed = 30.0f * dt;
 
 		if (Window::GetKeyboard()->KeyDown(KEYBOARD_W)) {
 			position += forward * speed;
@@ -49,28 +49,28 @@ void Camera::UpdateCamera(float dt)
 		}
 	}
 	else {
-		if (travel == 1000) {
-			if (endYaw == 45.0f) {
-				canMove = true;
-			}
-			else {
-				startPosition = Vector3(16386 * 0.8, 2040, 16386 * 0.2);
-				endPosition = Vector3(16386 * 0.8, 2040, 16386 * 0.8);
-				startYaw = 135.0f;
-				endYaw = 45.0f;
-				travel = 0;
-			}
+		if (nextPoint == 4) {
+			canMove = true;
 		}
 		else {
-			Vector3 newPos = GetPosition();
-			newPos.x = startPosition.x + ((travel / 1000) * (endPosition.x - startPosition.x));
-			newPos.z = startPosition.z + ((travel / 1000) * (endPosition.z - startPosition.z));
-			SetYaw(startYaw
-				+ ((travel / 1000) * (endYaw - startYaw)));
-			SetPosition(newPos);
-			travel++;
+			if (travel == 1000) {
+				nextPoint++;
+				travel = 0;
+			}
+			else {
+				Vector3 newPos = GetPosition();
+				newPos.x = positions[nextPoint - 1].x + ((travel / 1000) * (positions[nextPoint].x - positions[nextPoint - 1].x));
+				newPos.y = positions[nextPoint - 1].y + ((travel / 1000) * (positions[nextPoint].y - positions[nextPoint - 1].y));
+				newPos.z = positions[nextPoint - 1].z + ((travel / 1000) * (positions[nextPoint].z - positions[nextPoint - 1].z));
+				SetPosition(newPos);
+
+				SetYaw(yaws[nextPoint - 1]
+					+ ((travel / 1000) * (yaws[nextPoint] - yaws[nextPoint - 1])));
+				SetPitch(pitches[nextPoint - 1] + ((travel / 1000) * (pitches[nextPoint] - pitches[nextPoint - 1])));
+
+				travel++;
+			}
 		}
-		
 	}
 	
 }

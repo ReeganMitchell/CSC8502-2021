@@ -16,11 +16,17 @@ int main()	{
 
 	while(w.UpdateWindow()  && !Window::GetKeyboard()->KeyDown(KEYBOARD_ESCAPE)){
 		float delta = w.GetTimer()->GetTimeDeltaSeconds();
-		renderer.UpdateScene(delta);
+
+		renderer.UpdateScene(w.GetTimer()->GetTimeDeltaSeconds());
+
 		renderer.RenderScene();
 		renderer.SwapBuffers();
 		if (Window::GetKeyboard()->KeyDown(KEYBOARD_F5)) {
 			Shader::ReloadAllShaders();
+		}
+
+		if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_1)) {
+			renderer.ToggleGamma();
 		}
 		numFrames++;
 		w.SetTitle("Framerate: " + std::to_string(1 / delta));
