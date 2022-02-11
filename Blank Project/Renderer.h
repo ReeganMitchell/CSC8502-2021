@@ -6,7 +6,6 @@
 #include <nclgl\HeightMap.h>
 #include <nclgl/ParticleGenerator.h>
 
-
 class Camera;
 class SceneNode;
 class Mesh;
@@ -24,7 +23,6 @@ public:
 	void RenderScene() override;
 	void UpdateScene(float dt) override;
 	void ToggleGamma();
-
 protected:
 	void PresentScene();
 	void DrawPostProcess();
