@@ -4,6 +4,8 @@
 #include "Vector4.h"
 #include "Mesh.h"
 #include <vector>
+#include "MeshAnimation.h"
+#include "MeshMaterial.h"
 
 class SceneNode {
 public:
@@ -29,8 +31,22 @@ public:
 	float GetCameraDistance() const { return distanceFromCamera; }
 	void SetCameraDistance(float f) { distanceFromCamera = f; }
 
+	Shader* GetShader() const { return shader; }
+	void SetShader(Shader* s) { shader = s; }
+
 	GLuint GetTexture() const { return texture; }
-	void SetTexture(GLuint tex) { texture = tex; }
+	GLuint GetNormalTexture() const { return normal; }
+	void SetTexture(GLuint tex, GLuint norm) { texture = tex; normal = norm; }
+	void SetTexture(GLuint tex) { texture = tex;}
+
+	vector<GLuint> GetTextures() const { return matTextures; }
+	void SetTextures(vector<GLuint> tex) { matTextures = tex; }
+
+	MeshMaterial* GetMaterial() const { return material; }
+	void SetMaterial(MeshMaterial* m) { material = m; }
+
+	MeshAnimation* GetAnim() const { return anim; }
+	void SetAnim(MeshAnimation* a) { anim = a; }
 
 	Shader* GetShader() const { return shader; }
 	void SetShader(Shader* s) { shader = s; }
@@ -55,7 +71,12 @@ protected:
 	Vector4 colour;
 	float distanceFromCamera;
 	float boundingRadius;
-	GLuint texture;
+	Shader* shader;
+	MeshMaterial* material = NULL;
+	vector<GLuint> matTextures;
+	MeshAnimation* anim = NULL;
+	GLuint texture = NULL;
+	GLuint normal;
 	std::vector<SceneNode*> children;
 
 	Shader* shader;
